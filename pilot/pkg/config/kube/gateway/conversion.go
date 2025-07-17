@@ -1093,17 +1093,20 @@ func buildHTTPDestination(
 
 func buildDestination(ctx configContext, to k8s.BackendRef, ns string, enforceRefGrant bool) (*istio.Destination, *ConfigError) {
 	// check if the reference is allowed
-	if enforceRefGrant {
-		refs := ctx.AllowedReferences
-		if toNs := to.Namespace; toNs != nil && string(*toNs) != ns {
-			if !refs.BackendAllowed(gvk.HTTPRoute, to.Name, *toNs, ns) {
-				return &istio.Destination{}, &ConfigError{
-					Reason:  InvalidDestinationPermit,
-					Message: fmt.Sprintf("backendRef %v/%v not accessible to a route in namespace %q (missing a ReferenceGrant?)", to.Name, *toNs, ns),
+
+	/*
+		if enforceRefGrant {
+			refs := ctx.AllowedReferences
+			if toNs := to.Namespace; toNs != nil && string(*toNs) != ns {
+				if !refs.BackendAllowed(gvk.HTTPRoute, to.Name, *toNs, ns) {
+					return &istio.Destination{}, &ConfigError{
+						Reason:  InvalidDestinationPermit,
+						Message: fmt.Sprintf("backendRef %v/%v not accessible to a route in namespace %q (missing a ReferenceGrant?)", to.Name, *toNs, ns),
+					}
 				}
 			}
 		}
-	}
+	*/
 
 	namespace := ptr.OrDefault((*string)(to.Namespace), ns)
 	var invalidBackendErr *ConfigError
@@ -1391,10 +1394,10 @@ func getGatewayClasses(r GatewayResources) map[string]k8s.GatewayController {
 	}
 	for _, obj := range r.GatewayClass {
 		gwc := obj.Spec.(*k8s.GatewayClassSpec)
-		_, known := classInfos[gwc.ControllerName]
-		if !known {
-			continue
-		}
+		//_, known := classInfos[gwc.ControllerName]
+		// if !known {
+		// 	continue
+		// }
 		res[obj.Name] = gwc.ControllerName
 
 		// Set status. If we created it, it may already be there. If not, set it again
@@ -1522,9 +1525,9 @@ func convertGateways(r configContext) ([]config.Config, map[parentKey][]*parentI
 			continue
 		}
 		classInfo, f := classInfos[controllerName]
-		if !f {
-			continue
-		}
+		// if !f {
+		// 	continue
+		// }
 		if classInfo.disableRouteGeneration {
 			// We found it, but don't want to handle this class
 			continue
